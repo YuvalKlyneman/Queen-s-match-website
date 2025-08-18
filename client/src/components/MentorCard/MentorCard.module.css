@@ -26,3 +26,42 @@
 .name  { text-align: start; font-weight: 800; font-size: 1.05rem; margin: 0 0 4px; }
 .tech  { text-align: start; font-size: .82rem; color: var(--muted, #6b7280); letter-spacing: .04em; }
 .years { text-align: start; font-size: .78rem; color: #8f8f8f; margin-top: 4px; }
+.actions { display: flex; gap: 8px; margin-top: 8px; }
+.btn { padding: 8px 12px; border-radius: 8px; text-decoration: none; display: inline-block; }
+.disabled { opacity: 0.5; pointer-events: none; }
+
+/* icon buttons */
+.iconBtn{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:40px; height:40px; border-radius:10px;
+    border:1px solid var(--border,#f1d3da); background:#fff;
+    transition:background .15s ease, transform .08s ease, box-shadow .15s ease;
+}
+.iconBtn:hover{ background:var(--pink-100,#ffe4ec); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+.iconBtn:active{ transform:translateY(1px); }
+
+/* Optional helpers for the WhatsApp dropdown */
+.waGroup { position: relative; display: inline-block; }
+
+.waMenu {
+    position: absolute;
+    top: 48px;
+    inset-inline-start: 0;
+    background: #fff;
+    border: 1px solid var(--border, #f1d3da);
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    padding: 8px;
+    z-index: 20;
+    min-width: 160px;
+}
+
+.waMenu button {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: start;
+}
