@@ -95,3 +95,29 @@
     position:absolute; top:12px; inset-inline-end:12px;
     cursor:pointer; background:transparent; border:none; font-size:18px;
 }
+
+/* Optional helpers for the WhatsApp dropdown */
+.waGroup { position: relative; display: inline-block; }
+
+.waMenu {
+    position: absolute;
+    top: 48px;
+    inset-inline-start: 0;
+    background: #fff;
+    border: 1px solid var(--border, #f1d3da);
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    padding: 8px;
+    z-index: 20;
+    min-width: 160px;
+}
+
+.waMenu button {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: start;
+}
