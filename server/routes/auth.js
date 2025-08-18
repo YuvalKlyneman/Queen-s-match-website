@@ -116,13 +116,17 @@ router.post("/register-mentor",
       req.session.userId = user._id;
       req.session.userType = user.userType;
       req.session.userEmail = user.email;
+      req.session.userFirstName = mentor.firstName || null;
+      req.session.userLastName = mentor.lastName || null;
 
       res.status(201).json({
         message: "Mentor registered successfully with profile photo",
         user: {
           id: user._id,
           email: user.email,
-          userType: user.userType
+          userType: user.userType,
+          firstName: mentor.firstName,
+          lastName: mentor.lastName
         },
         mentor: {
           id: mentor._id,
@@ -182,13 +186,17 @@ router.post("/register-mentee", menteeValidation, async (req, res) => {
     req.session.userId = user._id;
     req.session.userType = user.userType;
     req.session.userEmail = user.email;
+    req.session.userFirstName = mentee.firstName || null;
+    req.session.userLastName = mentee.lastName || null;
 
     res.status(201).json({
       message: "Mentee registered and logged in successfully",
       user: {
         id: user._id,
         email: user.email,
-        userType: user.userType
+        userType: user.userType,
+        firstName: mentee.firstName,
+        lastName: mentee.lastName
       },
       mentee: {
         id: mentee._id,
@@ -225,14 +233,27 @@ router.post("/login", loginValidation, async (req, res) => {
     let profile = null;
     if (user.userType === "mentor") {
       profile = await Mentor.findOne({ userId: user._id }).select("-userId -__v -profilePhoto");
+      // Keep names in session
+      if (profile) {
+        req.session.userFirstName = profile.firstName || null;
+        req.session.userLastName  = profile.lastName || null;
+      }
     } else if (user.userType === "mentee") {
       profile = await Mentee.findOne({ userId: user._id }).select("-userId -__v");
+      // Keep names in session
+      if (profile) {
+        req.session.userFirstName = profile.firstName || null;
+        req.session.userLastName  = profile.lastName || null;
+      }
     } else if (user.userType === "admin") {
       profile = await Admin.findOne({ userId: user._id }).select("-userId -__v");
       // עדכון מועד התחברות אחרון לאדמין
       if (profile) {
         profile.lastLogin = new Date();
         await profile.save();
+        // For admins, if there are names on profile
+        req.session.userFirstName = profile.firstName || null;
+        req.session.userLastName  = profile.lastName || null;
       }
     }
 
@@ -241,7 +262,9 @@ router.post("/login", loginValidation, async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        userType: user.userType
+        userType: user.userType,
+        firstName: req.session.userFirstName || null,
+        lastName:  req.session.userLastName  || null
       },
       profile
     });
@@ -300,12 +323,18 @@ router.get("/me", async (req, res) => {
       profile = await Admin.findOne({ userId: user._id }).select("-userId -__v");
     }
 
+    // Prefer names from session; if missing, try profile
+    const firstName = req.session.userFirstName || profile?.firstName || null;
+    const lastName  = req.session.userLastName  || profile?.lastName  || null;
+
     res.json({
       authenticated: true,
       user: {
         id: user._id,
         email: user.email,
-        userType: user.userType
+        userType: user.userType,
+        firstName,
+        lastName
       },
       profile,
       session: {
