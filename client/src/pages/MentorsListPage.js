@@ -7,7 +7,7 @@ import SearchBar from "../components/SearchBar/SearchBar";
 import MentorGrid from "../components/MentorGrid/MentorGrid";
 import MentorDetails from "../components/MentorDetails/MentorDetails";
 import FilterAutoButton from "../components/FilterAutoButton";
-
+import Footer from "../components/Footer";
 /* Normalize a value to an array (handles arrays or comma-separated strings) */
 function toArray(v) {
   if (!v) return [];
@@ -109,59 +109,62 @@ export default function MentorsListPage() {
         setSelDomain([]);
     }
 
-    return (
-         <>
-      <Header />
+return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <Header />
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 16px 32px" }}>
-        <h1 className="mentorsTitle">Mentors</h1>
+            <div style={{ 
+                maxWidth: 1100, 
+                margin: "0 auto", 
+                padding: "16px 16px 32px",
+                flex: 1  // This makes the main content expand to fill available space
+            }}>
+                <h1 className="mentorsTitle">Mentors</h1>
 
-        {/* Search (can assign className="input" inside SearchBar’s input) */}
-        <SearchBar
-          onSearch={(q) => {
-            setQuery(q);
-            load(q);
-          }}
-          initialQuery={query}
-        />
+                <SearchBar
+                    onSearch={(q) => {
+                        setQuery(q);
+                        load(q);
+                    }}
+                    initialQuery={query}
+                />
 
-        {/* Filters */}
-        <div className="filtersBar">
-          <FilterAutoButton
-            label="Technologies"
-            options={techOpts}
-            value={selTech}
-            onChange={setSelTech}
-        />
-        <FilterAutoButton
-            label="Programming Languages"
-            options={langOpts}
-            value={selLang}
-            onChange={setSelLang}
-        />
-        <FilterAutoButton
-            label="Domains"
-            options={domainOpts}
-            value={selDomain}
-            onChange={setSelDomain}
-        />
-        <button className="clearBtn" onClick={clearAllFilters}>Clear Filters</button>
+                <div className="filtersBar">
+                    <FilterAutoButton
+                        label="Technologies"
+                        options={techOpts}
+                        value={selTech}
+                        onChange={setSelTech}
+                    />
+                    <FilterAutoButton
+                        label="Programming Languages"
+                        options={langOpts}
+                        value={selLang}
+                        onChange={setSelLang}
+                    />
+                    <FilterAutoButton
+                        label="Domains"
+                        options={domainOpts}
+                        value={selDomain}
+                        onChange={setSelDomain}
+                    />
+                    <button className="clearBtn" onClick={clearAllFilters}>Clear Filters</button>
+                </div>
+
+                <div style={{ marginTop: 16 }}>
+                    {loading ? (
+                        <div>Loading…</div>
+                    ) : (
+                        <MentorGrid mentors={filteredMentors} onSelect={setSelected} />
+                    )}
+                </div>
+
+                {selected && (
+                    <MentorDetails mentorId={selected.id} onClose={() => setSelected(null)} />
+                )}
+            </div>
+
+            <Footer />
         </div>
-
-        {/* Results */}
-        <div style={{ marginTop: 16 }}>
-          {loading ? (
-            <div>Loading…</div>
-          ) : (
-            <MentorGrid mentors={filteredMentors} onSelect={setSelected} />
-          )}
-        </div>
-
-        {/* Details modal */}
-        {selected && (
-          <MentorDetails mentorId={selected.id} onClose={() => setSelected(null)} />
-        )}
-      </div>
-    </>
-  );
+    );
 }

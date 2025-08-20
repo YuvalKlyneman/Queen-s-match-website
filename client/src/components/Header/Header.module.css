@@ -99,6 +99,39 @@
   opacity: 0.9;
 }
 
+/* New conditional buttons (Find Mentors / Update Profile) */
+.findMentorsBtn,
+.updateProfileBtn {
+  background: #fff;
+  color: var(--pink-500, #f43f5e);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.findMentorsBtn:hover,
+.updateProfileBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: #f8f9fa;
+}
+
+.updateProfileBtn {
+  /* Slightly different color for Update Profile to distinguish */
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--pink-600, #e11d48);
+}
+
+.updateProfileBtn:hover {
+  background: #fff;
+  color: var(--pink-700, #be185d);
+}
+
 .signOutBtn {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
@@ -205,6 +238,23 @@
   .crown {
     font-size: 1.1rem;
   }
+
+  /* Mobile adjustments for user section */
+  .userSection {
+    gap: 12px;
+  }
+
+  .findMentorsBtn,
+  .updateProfileBtn,
+  .signOutBtn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .welcomeText {
+    font-size: 0.85rem;
+    display: none; /* Hide welcome text on very small screens */
+  }
 }
 
 @media (max-width: 1024px) {
@@ -214,6 +264,21 @@
 
   .container {
     padding: 16px 24px;
+  }
+
+  .userSection {
+    gap: 14px;
+  }
+}
+
+/* Additional responsive breakpoint for medium screens */
+@media (max-width: 900px) {
+  .welcomeText {
+    display: none; /* Hide welcome text on medium screens to save space */
+  }
+  
+  .userSection {
+    gap: 12px;
   }
 }
 

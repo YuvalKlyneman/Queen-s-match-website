@@ -78,6 +78,29 @@ export default function Header() {
               ? "ברוכה הבאה!"
               : "Welcome!";
 
+  // Get conditional button props based on user type
+  const getConditionalButton = () => {
+    if (!user) return null;
+    
+    if (user.userType === "mentee") {
+      return {
+        href: "/mentors",
+        text: nameIsRTL ? "מנטורים" : "Find Mentors",
+        className: s.findMentorsBtn
+      };
+    } else if (user.userType === "mentor") {
+      return {
+        href: "/profile/edit",
+        text: nameIsRTL ? "עדכון פרופיל" : "Update Profile",
+        className: s.updateProfileBtn
+      };
+    }
+    
+    return null;
+  };
+
+  const conditionalButton = getConditionalButton();
+              
   return (
     <header className={s.bar}>
       <div className={s.container}>
@@ -96,6 +119,17 @@ export default function Header() {
               <span className={s.welcomeText} dir={nameIsRTL ? "rtl" : "ltr"}>
                 {greeting}
               </span>
+              
+              {/* Conditional button based on user type */}
+              {conditionalButton && (
+                <a 
+                  href={conditionalButton.href}
+                  className={conditionalButton.className}
+                >
+                  {conditionalButton.text}
+                </a>
+              )}
+              
               <button 
                 onClick={handleSignOut}
                 className={s.signOutBtn}

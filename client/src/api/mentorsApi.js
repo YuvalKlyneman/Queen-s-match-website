@@ -21,22 +21,24 @@ export async function fetchMentors({ q = "" } = {}) {
   const data = await res.json();
   const list = Array.isArray(data.mentors) ? data.mentors : [];
 
-  // FIXED: Use relative URLs for photos so they go through the proxy
+  // UPDATED: Include all skills arrays for the cards
   return list.map((m) => ({
     id: m._id || m.id,
     firstName: m.firstName,
     lastName: m.lastName,
     email: m.email,
     phone: m.phoneNumber,
+    phoneNumber: m.phoneNumber, // Keep both for compatibility
     generalDescription: m.generalDescription,
     yearsOfExperience: m.yearsOfExperience,
-    programmingLanguages: m.programmingLanguages,
-    technologies: m.technologies,
-    domains: m.domains,
+    programmingLanguages: m.programmingLanguages || [],
+    technologies: m.technologies || [],
+    domains: m.domains || [],
     linkedinUrl: m.linkedinUrl,
-    // FIXED: Use relative path for photos (proxy will handle it)
+    // Photo URLs
     avatarUrl: `/api/mentors/${m._id || m.id}/photo`,
-    // Also provide headlineTech for the card display
+    photoUrl: `/api/mentors/${m._id || m.id}/photo`, // Keep both for compatibility
+    // Keep headlineTech for backward compatibility, but now we'll show all skills
     headlineTech: m.programmingLanguages?.[0] || m.technologies?.[0] || "Developer",
   }));
 }
@@ -59,14 +61,16 @@ export async function fetchMentorById(id) {
     lastName: m.lastName,
     email: m.email,
     phone: m.phoneNumber,
+    phoneNumber: m.phoneNumber,
     generalDescription: m.generalDescription,
     yearsOfExperience: m.yearsOfExperience,
-    programmingLanguages: m.programmingLanguages,
-    technologies: m.technologies,
-    domains: m.domains,
+    programmingLanguages: m.programmingLanguages || [],
+    technologies: m.technologies || [],
+    domains: m.domains || [],
     linkedinUrl: m.linkedinUrl,
-    // FIXED: Use relative path for photos (proxy will handle it)
+    // Photo URLs
     avatarUrl: `/api/mentors/${m._id || m.id}/photo`,
+    photoUrl: `/api/mentors/${m._id || m.id}/photo`,
     headlineTech: m.programmingLanguages?.[0] || m.technologies?.[0] || "Developer",
     about: m.generalDescription, // Map to about for MentorDetails
   };

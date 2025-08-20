@@ -38,14 +38,22 @@ export default function MentorDetails({ mentorId, onClose }) {
     const aboutLabel   = isRtlContext ? `על ${mentor.firstName}` : `About ${mentor.firstName}`;
     const contactLabel = isRtlContext ? `צרי קשר עם ${mentor.firstName}` : `Contact ${mentor.firstName}`;
     const yearsLabel   = isRtlContext ? "שנות ניסיון" : "years of experience";
+    const skillsLabel  = isRtlContext ? "כישורים וטכנולוגיות" : "Skills & Technologies";
+    const programmingLabel = isRtlContext ? "שפות תכנות" : "Programming Languages";
+    const technologiesLabel = isRtlContext ? "טכנולוגיות" : "Technologies";
+    const domainsLabel = isRtlContext ? "תחומים" : "Domains";
 
     const avatar   = mentor.photoUrl || mentor.avatarUrl || "/avatars/default-female.png";
 
     const menteeName = currentUser?.firstName || "Mentee";
-    const { subject, body } = buildEmailTemplate({ mentorFirstName:
-            mentor?.firstName || "Mentor", menteeName });
-    const waText = buildWhatsappTemplate({ mentorFirstName: mentor?.firstName
-            || "Mentor", menteeName });
+    const { subject, body } = buildEmailTemplate({ 
+        mentorFirstName: mentor?.firstName || "Mentor", 
+        menteeName 
+    });
+    const waText = buildWhatsappTemplate({ 
+        mentorFirstName: mentor?.firstName || "Mentor", 
+        menteeName 
+    });
 
     const emailHref = mentor?.email ? gmailComposeHref({ to: mentor.email, subject, body }) : undefined;
 
@@ -56,6 +64,11 @@ export default function MentorDetails({ mentorId, onClose }) {
     const hasPhone = Boolean(rawPhone);
     const phoneE164NoPlus = hasPhone ? toE164NoPlusIL(rawPhone) : "";
     const waHrefFinal = hasPhone && phoneE164NoPlus ? waHref(phoneE164NoPlus, waText) : undefined;
+
+    // Get all skills
+    const programmingLanguages = mentor.programmingLanguages || [];
+    const technologies = mentor.technologies || [];
+    const domains = mentor.domains || [];
 
     return (
         <div className={s.backdrop} onClick={onClose}>
@@ -79,6 +92,52 @@ export default function MentorDetails({ mentorId, onClose }) {
                     {typeof mentor.yearsOfExperience === "number" && (
                         <div className={s.years}>
                             {mentor.yearsOfExperience} {yearsLabel}
+                        </div>
+                    )}
+
+                    {/* ADDED: Skills Section */}
+                    {(programmingLanguages.length > 0 || technologies.length > 0 || domains.length > 0) && (
+                        <div className={s.skillsSection}>
+                            <div className={s.sectionTitle}>{skillsLabel}</div>
+                            
+                            {programmingLanguages.length > 0 && (
+                                <div className={s.skillCategory}>
+                                    <div className={s.skillCategoryTitle}>{programmingLabel}</div>
+                                    <div className={s.skillTags}>
+                                        {programmingLanguages.map((skill, index) => (
+                                            <span key={index} className={`${s.skillTag} ${s.programmingTag}`}>
+                                                {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {technologies.length > 0 && (
+                                <div className={s.skillCategory}>
+                                    <div className={s.skillCategoryTitle}>{technologiesLabel}</div>
+                                    <div className={s.skillTags}>
+                                        {technologies.map((skill, index) => (
+                                            <span key={index} className={`${s.skillTag} ${s.technologyTag}`}>
+                                                {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {domains.length > 0 && (
+                                <div className={s.skillCategory}>
+                                    <div className={s.skillCategoryTitle}>{domainsLabel}</div>
+                                    <div className={s.skillTags}>
+                                        {domains.map((skill, index) => (
+                                            <span key={index} className={`${s.skillTag} ${s.domainTag}`}>
+                                                {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

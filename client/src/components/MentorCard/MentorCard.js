@@ -29,6 +29,17 @@ export default function MentorCard({ mentor, onClick }) {
     const cardDir = isRTL(fullName) ? "rtl" : "ltr";
     const yearsLabel = isRTL(fullName) ? "שנות ניסיון" : "years of experience";
 
+    // ADDED: Combine all skills for display
+    const allSkills = [
+        ...(mentor?.programmingLanguages || []),
+        ...(mentor?.technologies || []),
+        ...(mentor?.domains || [])
+    ];
+
+    // Show first 3 skills, then "+X more" if there are more
+    const displaySkills = allSkills.slice(0, 3);
+    const remainingCount = allSkills.length - displaySkills.length;
+
     const handleKeyDown = (e) => {
         if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -37,14 +48,17 @@ export default function MentorCard({ mentor, onClick }) {
     };
 
     const menteeName = currentUser?.firstName || "Mentee";
-    const { subject, body } = buildEmailTemplate({ mentorFirstName:
-            mentor?.firstName || "Mentor", menteeName });
-    const waText = buildWhatsappTemplate({ mentorFirstName: mentor?.firstName
-            || "Mentor", menteeName });
+    const { subject, body } = buildEmailTemplate({ 
+        mentorFirstName: mentor?.firstName || "Mentor", 
+        menteeName 
+    });
+    const waText = buildWhatsappTemplate({ 
+        mentorFirstName: mentor?.firstName || "Mentor", 
+        menteeName 
+    });
 
     const hasEmail = Boolean(mentor?.email);
-    const gmailLink = hasEmail ? gmailComposeHref(
-        { to: mentor.email, subject, body }) : null;
+    const gmailLink = hasEmail ? gmailComposeHref({ to: mentor.email, subject, body }) : null;
 
     const rawPhone = mentor?.phoneNumber || mentor?.phone;
     const hasPhone = Boolean(rawPhone);
@@ -61,11 +75,24 @@ export default function MentorCard({ mentor, onClick }) {
             onKeyDown={handleKeyDown}
             dir={cardDir}
         >
-            {/* The CSS can flip columns using .card:dir(rtl) if needed */}
             <img className={s.avatar} src={avatar} alt={fullName} />
             <div className={s.text}>
                 <div className={s.name} dir="auto">{fullName}</div>
-                <div className={s.tech} dir="auto">{mentor.headlineTech}</div>
+                
+                {/* UPDATED: Show multiple skills instead of just headlineTech */}
+                <div className={s.skillsContainer}>
+                    {displaySkills.map((skill, index) => (
+                        <span key={index} className={s.skillTag}>
+                            {skill}
+                        </span>
+                    ))}
+                    {remainingCount > 0 && (
+                        <span className={s.moreSkills}>
+                            +{remainingCount} more
+                        </span>
+                    )}
+                </div>
+
                 {typeof mentor.yearsOfExperience === "number" && (
                     <div className={s.years} dir={cardDir}>
                         {mentor.yearsOfExperience} {yearsLabel}

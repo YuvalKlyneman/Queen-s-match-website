@@ -30,6 +30,36 @@
 .btn { padding: 8px 12px; border-radius: 8px; text-decoration: none; display: inline-block; }
 .disabled { opacity: 0.5; pointer-events: none; }
 
+/* ADDED: Skills container */
+.skillsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 6px 0;
+    align-items: center;
+}
+
+/* ADDED: Individual skill tags */
+.skillTag {
+    display: inline-block;
+    background: var(--pink-100, #ffe4ec);
+    color: var(--pink-600, #e11d48);
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--pink-200, #fecdd3);
+    white-space: nowrap;
+}
+
+/* ADDED: "+X more" indicator */
+.moreSkills {
+    font-size: 0.7rem;
+    color: var(--muted, #6b7280);
+    font-weight: 500;
+    font-style: italic;
+}
+
 /* icon buttons */
 .iconBtn{
     display:inline-flex; align-items:center; justify-content:center;
