@@ -21,7 +21,10 @@ export async function fetchMentors({ q = "" } = {}) {
   const data = await res.json();
   const list = Array.isArray(data.mentors) ? data.mentors : [];
 
-  // UPDATED: Include all skills arrays for the cards
+  // Add cache buster to photo URLs for consistent loading
+  const timestamp = Date.now();
+  
+  // UPDATED: Include all skills arrays for the cards and add cache busting
   return list.map((m) => ({
     id: m._id || m.id,
     firstName: m.firstName,
@@ -35,9 +38,9 @@ export async function fetchMentors({ q = "" } = {}) {
     technologies: m.technologies || [],
     domains: m.domains || [],
     linkedinUrl: m.linkedinUrl,
-    // Photo URLs
-    avatarUrl: `/api/mentors/${m._id || m.id}/photo`,
-    photoUrl: `/api/mentors/${m._id || m.id}/photo`, // Keep both for compatibility
+    // Photo URLs with cache busting for mentees to see updated photos
+    avatarUrl: `/api/mentors/${m._id || m.id}/photo?v=${timestamp}`,
+    photoUrl: `/api/mentors/${m._id || m.id}/photo?v=${timestamp}`, // Keep both for compatibility
     // Keep headlineTech for backward compatibility, but now we'll show all skills
     headlineTech: m.programmingLanguages?.[0] || m.technologies?.[0] || "Developer",
   }));
@@ -55,6 +58,9 @@ export async function fetchMentorById(id) {
   const m = data.mentor ?? null;
   if (!m) return null;
 
+  // Add cache buster for individual mentor photos
+  const timestamp = Date.now();
+
   return {
     id: m._id || m.id,
     firstName: m.firstName,
@@ -68,9 +74,9 @@ export async function fetchMentorById(id) {
     technologies: m.technologies || [],
     domains: m.domains || [],
     linkedinUrl: m.linkedinUrl,
-    // Photo URLs
-    avatarUrl: `/api/mentors/${m._id || m.id}/photo`,
-    photoUrl: `/api/mentors/${m._id || m.id}/photo`,
+    // Photo URLs with cache busting
+    avatarUrl: `/api/mentors/${m._id || m.id}/photo?v=${timestamp}`,
+    photoUrl: `/api/mentors/${m._id || m.id}/photo?v=${timestamp}`,
     headlineTech: m.programmingLanguages?.[0] || m.technologies?.[0] || "Developer",
     about: m.generalDescription, // Map to about for MentorDetails
   };

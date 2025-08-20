@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Container,
@@ -53,6 +53,8 @@ const ProfileUpdate = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [initialLoading, setInitialLoading] = useState(true);
+  // ADD: Cache buster for photo updates
+  const [photoCacheBuster, setPhotoCacheBuster] = useState(Date.now());
 
   // Suggestions for autocomplete
   const programmingLanguageSuggestions = [
@@ -138,12 +140,8 @@ const ProfileUpdate = () => {
     "EdTech",
   ];
 
-  // Load current profile data
-  useEffect(() => {
-    loadCurrentProfile();
-  }, []);
-
-  const loadCurrentProfile = async () => {
+  // Load current profile data with useCallback to fix dependency warning
+  const loadCurrentProfile = useCallback(async () => {
     try {
       const response = await fetch("/api/auth/me", {
         credentials: "include",
@@ -166,7 +164,9 @@ const ProfileUpdate = () => {
             linkedinUrl: profile.linkedinUrl || "",
           });
 
-          setCurrentPhotoUrl(`/api/mentors/${profile._id}/photo`);
+          // FIXED: Add cache buster to photo URL
+          const photoUrl = `/api/mentors/${profile._id}/photo?v=${photoCacheBuster}`;
+          setCurrentPhotoUrl(photoUrl);
         }
       }
     } catch (error) {
@@ -174,7 +174,12 @@ const ProfileUpdate = () => {
     } finally {
       setInitialLoading(false);
     }
-  };
+  }, [photoCacheBuster]); // Include photoCacheBuster as dependency
+
+  // Load current profile data
+  useEffect(() => {
+    loadCurrentProfile();
+  }, [loadCurrentProfile]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -241,9 +246,30 @@ const ProfileUpdate = () => {
 
       if (response.ok) {
         setMessage({ type: "success", text: "Profile updated successfully!" });
+        
+        // FIXED: Clear photo-related state and update cache buster
         setProfilePhoto(null);
         setPhotoPreview(null);
-        await loadCurrentProfile();
+        
+        // Update cache buster to force photo reload
+        const newCacheBuster = Date.now();
+        setPhotoCacheBuster(newCacheBuster);
+        
+        // FIXED: Update current photo URL with new cache buster
+        if (data.mentor && data.mentor._id) {
+          const newPhotoUrl = `/api/mentors/${data.mentor._id}/photo?v=${newCacheBuster}`;
+          setCurrentPhotoUrl(newPhotoUrl);
+        } else {
+          // Reload profile to get updated data
+          await loadCurrentProfile();
+        }
+        
+        // Clear file input
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+          fileInput.value = '';
+        }
+        
       } else {
         setMessage({
           type: "error",
@@ -251,6 +277,7 @@ const ProfileUpdate = () => {
         });
       }
     } catch (error) {
+      console.error("Profile update error:", error);
       setMessage({ type: "error", text: "Network error occurred" });
     } finally {
       setLoading(false);
@@ -270,6 +297,9 @@ const ProfileUpdate = () => {
       </Box>
     );
   }
+
+  // FIXED: Use photoPreview if available, otherwise use current photo with cache buster
+  const displayPhotoUrl = photoPreview || currentPhotoUrl;
 
   return (
     <>
@@ -309,7 +339,7 @@ const ProfileUpdate = () => {
                 <CardContent>
                   <Box position="relative" display="inline-block">
                     <Avatar
-                      src={photoPreview || currentPhotoUrl}
+                      src={displayPhotoUrl}
                       sx={{
                         width: 120,
                         height: 120,
@@ -343,6 +373,12 @@ const ProfileUpdate = () => {
                   <Typography variant="body2" color="text.secondary">
                     Click the camera icon to upload a new photo (max 5MB)
                   </Typography>
+                  {/* ADDED: Show selected file name */}
+                  {profilePhoto && (
+                    <Typography variant="caption" color="success.main" sx={{ mt: 1, display: 'block' }}>
+                      New photo selected: {profilePhoto.name}
+                    </Typography>
+                  )}
                 </CardContent>
               </Card>
 

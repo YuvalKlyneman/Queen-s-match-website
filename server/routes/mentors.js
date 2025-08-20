@@ -5,7 +5,7 @@ const Mentor = require("../models/Mentor");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
-// GET /api/mentors/:id/photo - Serve mentor photo
+// GET /api/mentors/:id/photo - Serve mentor photo (PUBLIC ACCESS FOR MENTEES)
 router.get("/:id/photo", async (req, res) => {
   try {
     const mentor = await Mentor.findById(req.params.id);
@@ -17,7 +17,8 @@ router.get("/:id/photo", async (req, res) => {
     res.set({
       'Content-Type': mentor.profilePhoto.contentType,
       'Content-Length': mentor.profilePhoto.data.length,
-      'Cache-Control': 'public, max-age=86400'
+      'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
+      'ETag': `"${mentor._id}-${mentor.updatedAt.getTime()}"` // Add ETag for better caching
     });
 
     res.send(mentor.profilePhoto.data);
@@ -28,9 +29,17 @@ router.get("/:id/photo", async (req, res) => {
   }
 });
 
-// GET /api/mentors - View all mentors with photo URLs
+// GET /api/mentors - View all mentors with photo URLs (REQUIRES AUTH - mentees can access)
 router.get("/", requireAuth, async (req, res) => {
   try {
+    // Verify the user can access mentors (mentees and mentors can view, admins too)
+    if (!['mentee', 'mentor', 'admin'].includes(req.session.userType)) {
+      return res.status(403).json({ 
+        error: "Access denied", 
+        message: "Only mentees, mentors, and admins can view mentor profiles" 
+      });
+    }
+
     const mentors = await Mentor.find({})
       .select("-userId -__v -profilePhoto")
       .sort({ createdAt: -1 });
@@ -56,9 +65,17 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/mentors/search - Search mentors with photo URLs
+// GET /api/mentors/search - Search mentors with photo URLs (REQUIRES AUTH - mentees can access)
 router.get("/search", requireAuth, async (req, res) => {
   try {
+    // Verify the user can access mentors
+    if (!['mentee', 'mentor', 'admin'].includes(req.session.userType)) {
+      return res.status(403).json({ 
+        error: "Access denied", 
+        message: "Only mentees, mentors, and admins can search mentor profiles" 
+      });
+    }
+
     const { q } = req.query;
     if (!q || q.trim().length === 0) {
       return res.json({ 
@@ -101,9 +118,17 @@ router.get("/search", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/mentors/:id - Get specific mentor details with photo URL
+// GET /api/mentors/:id - Get specific mentor details with photo URL (REQUIRES AUTH - mentees can access)
 router.get("/:id", requireAuth, async (req, res) => {
   try {
+    // Verify the user can access mentor details
+    if (!['mentee', 'mentor', 'admin'].includes(req.session.userType)) {
+      return res.status(403).json({ 
+        error: "Access denied", 
+        message: "Only mentees, mentors, and admins can view mentor details" 
+      });
+    }
+
     const mentor = await Mentor.findById(req.params.id).select("-userId -__v -profilePhoto");
     
     if (!mentor) {
@@ -132,13 +157,12 @@ router.get("/:id", requireAuth, async (req, res) => {
   }
 });
   
-
 // PUT /api/mentors/profile - Update mentor profile (mentors only)
-const uploadPhoto = require("../middleware/upload"); // Add this import at the top if missing
+const uploadPhoto = require("../middleware/upload");
 
 router.put("/profile", 
   requireRole("mentor"),
-  uploadPhoto, // Add file upload support
+  uploadPhoto,
   [
     body("firstName").optional().notEmpty().trim().withMessage("First name cannot be empty"),
     body("lastName").optional().notEmpty().trim().withMessage("Last name cannot be empty"),
@@ -147,7 +171,6 @@ router.put("/profile",
     body("generalDescription").optional().isLength({ max: 1000 }).withMessage("General description must be under 1000 characters"),
     body("phoneNumber").optional().notEmpty().trim().withMessage("Phone number cannot be empty"),
     body("linkedinUrl").optional().isURL().withMessage("LinkedIn URL must be valid")
-    // Remove the problematic array validations for now since they come as strings from FormData
   ], 
   async (req, res) => {
     try {
@@ -199,18 +222,22 @@ router.put("/profile",
           contentType: req.file.mimetype
         };
         updateData.photoFileName = req.file.originalname;
+        
+        console.log(`📸 Photo updated for mentor ${mentor._id}: ${req.file.originalname} (${req.file.size} bytes)`);
       }
 
       // Apply updates
       Object.assign(mentor, updateData);
       await mentor.save();
 
-      // Return updated mentor with photo URL
+      // Return updated mentor with photo URL (include timestamp for cache busting)
       const updatedMentor = await Mentor.findOne({ userId: req.session.userId }).select("-userId -__v -profilePhoto");
+      const timestamp = Date.now();
       const mentorWithPhoto = {
         ...updatedMentor.toObject(),
-        photoUrl: `${req.protocol}://${req.get('host')}/api/mentors/${updatedMentor._id}/photo`,
-        hasPhoto: true
+        photoUrl: `${req.protocol}://${req.get('host')}/api/mentors/${updatedMentor._id}/photo?v=${timestamp}`,
+        hasPhoto: true,
+        photoUpdated: !!req.file // Indicate if photo was updated
       };
 
       res.json({
@@ -244,9 +271,10 @@ router.get("/my/profile", requireRole("mentor"), async (req, res) => {
       return res.status(404).json({ error: "Mentor profile not found" });
     }
     
+    const timestamp = Date.now();
     const mentorWithPhoto = {
       ...mentor.toObject(),
-      photoUrl: `${req.protocol}://${req.get('host')}/api/mentors/${mentor._id}/photo`,
+      photoUrl: `${req.protocol}://${req.get('host')}/api/mentors/${mentor._id}/photo?v=${timestamp}`,
       hasPhoto: true
     };
     
